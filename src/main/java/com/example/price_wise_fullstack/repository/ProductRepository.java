@@ -8,4 +8,7 @@ import com.example.price_wise_fullstack.model.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+
+    boolean existsByNameIgnoreCase(String name);
+
 }
