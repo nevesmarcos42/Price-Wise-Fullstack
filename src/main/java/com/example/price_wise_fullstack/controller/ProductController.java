@@ -1,12 +1,13 @@
 package com.example.price_wise_fullstack.controller;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.price_wise_fullstack.dto.PaginatedResponseDTO;
 import com.example.price_wise_fullstack.dto.ProductRequestDTO;
 import com.example.price_wise_fullstack.dto.ProductResponseDTO;
 import com.example.price_wise_fullstack.service.ProductService;
@@ -26,7 +27,18 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> getAll() {
-        return ResponseEntity.ok(productService.listAll());
+    public ResponseEntity<PaginatedResponseDTO<ProductResponseDTO>> getFiltered(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int limit,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(defaultValue = "name") String sortBy,
+        @RequestParam(defaultValue = "asc") String sortOrder
+    ) {
+        PaginatedResponseDTO<ProductResponseDTO> response = productService.listFiltered(
+            search, minPrice, maxPrice, page, limit, sortBy, sortOrder
+        );
+        return ResponseEntity.ok(response);
     }
 }
