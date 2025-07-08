@@ -81,5 +81,22 @@ public class OrderService {
 
         return summary;
     }
+
+    public List<OrderSummaryDTO> listAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+
+        return orders.stream().map(order -> {
+            OrderSummaryDTO dto = new OrderSummaryDTO();
+            dto.setOrderId(order.getId());
+            dto.setCouponCode(order.getCoupon() != null ? order.getCoupon().getCode() : null);
+            dto.setCreatedAt(order.getCreatedAt());
+            dto.setTotalOriginal(order.getTotalOriginal());
+            dto.setDiscountApplied(order.getDiscountApplied());
+            dto.setTotalFinal(order.getTotalFinal());
+            dto.setProductNames(order.getItems().stream()
+                .map(item -> item.getProduct().getName()).toList());
+            return dto;
+        }).toList();
+    }
 }
 
