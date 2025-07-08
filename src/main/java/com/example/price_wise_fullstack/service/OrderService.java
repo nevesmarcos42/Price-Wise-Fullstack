@@ -32,6 +32,10 @@ public class OrderService {
 
     public OrderSummaryDTO saveOrder(OrderRequestDTO dto) {
         List<Product> products = productRepository.findAllById(dto.getProductIds());
+        if (products.size() != dto.getProductIds().size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto(s) não encontrado(s)");
+        }
+
         if (products.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produtos não encontrados");
         }
@@ -66,6 +70,13 @@ public class OrderService {
             item.setProduct(product);
             item.setPrice(product.getPrice());
             order.getItems().add(item);
+        }
+
+        if (totalFinal.compareTo(new BigDecimal("0.01")) < 0) {
+            throw new ResponseStatusException(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Valor final abaixo de R$ 0,01 não permitido"
+            );
         }
 
         Order saved = orderRepository.save(order);
