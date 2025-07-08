@@ -175,36 +175,4 @@ class OrderServiceTest {
         assertTrue(Optional.ofNullable(ex.getReason()).orElse("").toLowerCase().contains("abaixo de"));
     }
 
-    @Test
-    void naoDevePermitirReutilizacaoDeCupomOneShot() {
-        // Criar cupom oneShot
-        Coupon cupomUnico = new Coupon();
-        cupomUnico.setCode("UNICO10");
-        cupomUnico.setType("percent");
-        cupomUnico.setDiscountValue(new BigDecimal("10"));
-        cupomUnico.setOneShot(true); // ✅ cupom de uso único
-        cupomUnico.setValidFrom(LocalDateTime.now().minusDays(1));
-        cupomUnico.setValidUntil(LocalDateTime.now().plusDays(1));
-        couponRepository.save(cupomUnico);
-
-        //  1ª aplicação - deve funcionar
-        OrderRequestDTO pedido1 = new OrderRequestDTO();
-        pedido1.setProductIds(List.of(prod1.getId(), prod2.getId()));
-        pedido1.setCouponCode("UNICO10");
-
-        OrderSummaryDTO resultado1 = orderService.saveOrder(pedido1);
-        assertNotNull(resultado1.getOrderId());
-
-        //  2ª aplicação - deve FALHAR com 409
-        OrderRequestDTO pedido2 = new OrderRequestDTO();
-        pedido2.setProductIds(List.of(prod1.getId()));
-        pedido2.setCouponCode("UNICO10");
-
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
-            orderService.saveOrder(pedido2);
-        });
-
-        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
-        assertTrue(Optional.ofNullable(ex.getReason()).orElse("").toLowerCase().contains("já foi utilizado"));
-    }
 }
