@@ -1,12 +1,21 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Orders from "./pages/Orders";
+import Cupons from "./pages/Cupons";
+import Dashboard from "./pages/Dashboard";
+
 import "./App.css";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-blue-600">
-        Price Wise Frontend com Tailwind ✨
-      </h1>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/cupons" element={<Cupons />} />
+      </Routes>
+    </Router>
   );
 }
 
