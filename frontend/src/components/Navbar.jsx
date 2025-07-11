@@ -9,7 +9,7 @@ export default function Navbar() {
             PriceWise
           </h1>
 
-          <div className="flex space-x-16 text-white font-medium">
+          <div className="flex space-x-6 text-white font-medium">
             <NavLink
               to="/"
               className={({ isActive }) =>
@@ -20,6 +20,7 @@ export default function Navbar() {
             >
               Dashboard
             </NavLink>
+
             <NavLink
               to="/orders"
               className={({ isActive }) =>
@@ -30,6 +31,7 @@ export default function Navbar() {
             >
               Pedidos
             </NavLink>
+
             <NavLink
               to="/cupons"
               className={({ isActive }) =>
@@ -39,6 +41,28 @@ export default function Navbar() {
               }
             >
               Cupons
+            </NavLink>
+
+            <NavLink
+              to="/produtos"
+              className={({ isActive }) =>
+                isActive
+                  ? "border-b-2 border-white pb-1"
+                  : "hover:text-blue-200 transition"
+              }
+            >
+              Produtos
+            </NavLink>
+
+            <NavLink
+              to="/checkout"
+              className={({ isActive }) =>
+                isActive
+                  ? "border-b-2 border-white pb-1"
+                  : "hover:text-blue-200 transition"
+              }
+            >
+              Checkout
             </NavLink>
           </div>
         </div>
