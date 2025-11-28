@@ -16,31 +16,31 @@ export default function FilterBar({ filters, setFilters }) {
         name="search"
         value={filters.search}
         onChange={handleChange}
-        placeholder="Buscar por nome..."
+        placeholder="Search by name..."
         className="border px-3 py-2 rounded text-gray-700"
       />
 
-      {/*  Faixa de preço mínima */}
+      {/*  Min price range */}
       <input
         type="number"
         name="minPrice"
         value={filters.minPrice}
         onChange={handleChange}
-        placeholder="Preço mínimo"
+        placeholder="Min price"
         className="border px-3 py-2 rounded text-gray-700"
       />
 
-      {/*  Faixa de preço máxima */}
+      {/*  Max price range */}
       <input
         type="number"
         name="maxPrice"
         value={filters.maxPrice}
         onChange={handleChange}
-        placeholder="Preço máximo"
+        placeholder="Max price"
         className="border px-3 py-2 rounded text-gray-700"
       />
 
-      {/*  Filtro de desconto ativo */}
+      {/*  Discount filter */}
       <label className="flex items-center space-x-2 text-sm text-gray-600">
         <input
           type="checkbox"
@@ -48,7 +48,7 @@ export default function FilterBar({ filters, setFilters }) {
           checked={filters.hasDiscount}
           onChange={handleChange}
         />
-        <span>Com desconto</span>
+        <span>With discount</span>
       </label>
     </div>
   );

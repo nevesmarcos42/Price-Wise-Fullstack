@@ -14,11 +14,11 @@ export default function Pagination({ page, totalPages, onPageChange }) {
         disabled={page === 1}
         className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
       >
-        ← Página anterior
+        ← Previous page
       </button>
 
       <span className="text-sm text-gray-600 font-semibold">
-        Página {page} de {totalPages}
+        Page {page} of {totalPages}
       </span>
 
       <button
@@ -26,7 +26,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
         disabled={page >= totalPages}
         className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
       >
-        Próxima página →
+        Next page →
       </button>
     </div>
   );

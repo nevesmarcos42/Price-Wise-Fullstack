@@ -9,11 +9,9 @@ export default function RemoveDiscountButton({ productId }) {
     setLoading(true);
     try {
       await removeDesconto(productId);
-      setFeedback("Desconto removido com sucesso.");
+      setFeedback("Discount removed successfully.");
     } catch (error) {
-      setFeedback(
-        error.response?.data?.message || "Erro ao remover o desconto."
-      );
+      setFeedback(error.response?.data?.message || "Error removing discount.");
     } finally {
       setLoading(false);
       setTimeout(() => setFeedback(""), 2000);
@@ -27,7 +25,7 @@ export default function RemoveDiscountButton({ productId }) {
         disabled={loading}
         className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60"
       >
-        Remover Desconto
+        Remove Discount
       </button>
 
       {feedback && (
