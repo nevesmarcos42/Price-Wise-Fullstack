@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { postCupom } from "../services/api";
 
-export default function CouponForm() {
+export default function CouponForm({ onSuccess }) {
   const [formData, setFormData] = useState({
     code: "",
     type: "percent",
-    value: "",
+    discountValue: "",
     oneShot: false,
     validFrom: "",
     validUntil: "",
@@ -23,13 +23,13 @@ export default function CouponForm() {
   };
 
   const validarCupom = () => {
-    if (!formData.code.trim()) return "Código é obrigatório.";
-    if (!formData.value || Number(formData.value) <= 0)
-      return "Valor deve ser maior que 0.";
+    if (!formData.code.trim()) return "Code is required.";
+    if (!formData.discountValue || Number(formData.discountValue) <= 0)
+      return "Value must be greater than 0.";
     if (!formData.validFrom || !formData.validUntil)
-      return "Período de validade obrigatório.";
-    if (formData.type === "percent" && Number(formData.value) > 100)
-      return "Percentual máximo é 100%.";
+      return "Validity period required.";
+    if (formData.type === "percent" && Number(formData.discountValue) > 100)
+      return "Maximum percentage is 100%.";
     return null;
   };
 
@@ -44,96 +44,165 @@ export default function CouponForm() {
     setLoading(true);
     try {
       await postCupom(formData);
-      setFeedback("Cupom cadastrado com sucesso.");
+      setFeedback("Coupon registered successfully!");
       setFormData({
         code: "",
         type: "percent",
-        value: "",
+        discountValue: "",
         oneShot: false,
         validFrom: "",
         validUntil: "",
       });
+
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      }
     } catch (error) {
       if (error.response?.status === 409) {
-        setFeedback("Código já existente.");
+        setFeedback("Code already exists.");
       } else {
-        setFeedback("Erro ao cadastrar cupom.");
+        setFeedback(
+          error.response?.data?.message || "Error registering coupon."
+        );
       }
     } finally {
       setLoading(false);
-      setTimeout(() => setFeedback(""), 3000);
+      setTimeout(() => setFeedback(""), 4000);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-6 bg-white rounded shadow space-y-4 max-w-lg mx-auto"
-    >
-      <h2 className="text-xl font-bold text-blue-700">🎟️ Criar Cupom</h2>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            htmlFor="coupon-code"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            Código do Cupom *
+          </label>
+          <input
+            id="coupon-code"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            placeholder="Ex: PROMO10"
+            className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-      <input
-        name="code"
-        value={formData.code}
-        onChange={handleChange}
-        placeholder="Código do cupom"
-        className="w-full border px-3 py-2 rounded"
-      />
+        <div>
+          <label
+            htmlFor="discount-type"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            Tipo de Desconto *
+          </label>
+          <select
+            id="discount-type"
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="percent">Percentual (%)</option>
+            <option value="fixed">Valor Fixo (R$)</option>
+          </select>
+        </div>
 
-      <select
-        name="type"
-        value={formData.type}
-        onChange={handleChange}
-        className="w-full border px-3 py-2 rounded"
-      >
-        <option value="percent">Percentual (%)</option>
-        <option value="fixed">Valor fixo (R$)</option>
-      </select>
+        <div>
+          <label
+            htmlFor="discount-value"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            Valor do Desconto *
+          </label>
+          <input
+            id="discount-value"
+            type="number"
+            name="discountValue"
+            value={formData.discountValue}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder={formData.type === "fixed" ? "Ex: 50.00" : "Ex: 10"}
+            className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
 
-      <input
-        type="number"
-        name="value"
-        value={formData.value}
-        onChange={handleChange}
-        placeholder={formData.type === "fixed" ? "Valor em R$" : "Percentual"}
-        className="w-full border px-3 py-2 rounded"
-      />
+        <div className="flex items-center pt-8">
+          <input
+            id="one-shot"
+            type="checkbox"
+            name="oneShot"
+            checked={formData.oneShot}
+            onChange={handleChange}
+            className="w-4 h-4 text-blue-600"
+          />
+          <label htmlFor="one-shot" className="ml-2 text-sm text-gray-700">
+            Cupom de uso único
+          </label>
+        </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          name="oneShot"
-          checked={formData.oneShot}
-          onChange={handleChange}
-        />
-        <label className="text-sm text-gray-600">Cupom de uso único</label>
+        <div>
+          <label
+            htmlFor="valid-from"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            Válido de *
+          </label>
+          <input
+            id="valid-from"
+            type="datetime-local"
+            name="validFrom"
+            value={formData.validFrom}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="valid-until"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            Válido até *
+          </label>
+          <input
+            id="valid-until"
+            type="datetime-local"
+            name="validUntil"
+            value={formData.validUntil}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          type="date"
-          name="validFrom"
-          value={formData.validFrom}
-          onChange={handleChange}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="date"
-          name="validUntil"
-          value={formData.validUntil}
-          onChange={handleChange}
-          className="border px-3 py-2 rounded"
-        />
-      </div>
-
-      {feedback && <p className="text-sm text-gray-600">{feedback}</p>}
+      {feedback && (
+        <div
+          className={`p-3 rounded ${
+            feedback.includes("sucesso")
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {feedback}
+        </div>
+      )}
 
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-60"
+        className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
       >
-        {loading ? "Enviando..." : "Criar Cupom"}
+        {loading ? "Criando..." : "Criar Cupom"}
       </button>
     </form>
   );

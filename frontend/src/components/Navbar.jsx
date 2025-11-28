@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 
+// Main navigation component
 export default function Navbar() {
   return (
     <nav className="bg-blue-700 shadow-md">
@@ -29,7 +30,7 @@ export default function Navbar() {
                   : "hover:text-blue-200 transition"
               }
             >
-              Pedidos
+              Orders
             </NavLink>
 
             <NavLink
@@ -40,7 +41,7 @@ export default function Navbar() {
                   : "hover:text-blue-200 transition"
               }
             >
-              Cupons
+              Coupons
             </NavLink>
 
             <NavLink
@@ -51,7 +52,7 @@ export default function Navbar() {
                   : "hover:text-blue-200 transition"
               }
             >
-              Produtos
+              Products
             </NavLink>
 
             <NavLink

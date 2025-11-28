@@ -5,6 +5,7 @@ import Cupons from "./pages/Cupons";
 import Orders from "./pages/Orders";
 import Produtos from "./pages/Product";
 import Checkout from "./pages/Checkout";
+import AddProduct from "./pages/AddProduct";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/cupons" element={<Cupons />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/produtos" element={<Produtos />} />
+        <Route path="/add-product" element={<AddProduct />} />
         <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </BrowserRouter>
