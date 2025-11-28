@@ -31,8 +31,10 @@ public class OrderService {
     private ProductRepository productRepository;
 
     public OrderSummaryDTO saveOrder(OrderRequestDTO dto) {
-        List<Product> products = productRepository.findAllById(dto.getProductIds());
-        if (products.size() != dto.getProductIds().size()) {
+        List<Long> productIds = dto.getProductIds() != null ? dto.getProductIds() : List.of();
+        @SuppressWarnings("null")
+        List<Product> products = productRepository.findAllById(productIds);
+        if (products.size() != productIds.size()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto(s) não encontrado(s)");
         }
 

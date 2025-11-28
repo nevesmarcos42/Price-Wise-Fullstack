@@ -25,7 +25,9 @@ public class CartService {
     private CouponRepository couponRepository;
 
     public CartSummaryDTO checkout(CartRequestDTO dto) {
-        List<Product> products = productRepository.findAllById(dto.getProductIds());
+        List<Long> productIds = dto.getProductIds() != null ? dto.getProductIds() : List.of();
+        @SuppressWarnings("null")
+        List<Product> products = productRepository.findAllById(productIds);
 
         if (products.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum produto encontrado");

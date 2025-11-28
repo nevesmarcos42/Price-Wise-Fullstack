@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class PriceWiseFullstackApplication {
 
 	public static void main(String[] args) {
+		// Starting the application
 		SpringApplication.run(PriceWiseFullstackApplication.class, args);
 	}
-
 }
