@@ -1,11 +1,86 @@
 import axios from "axios";
 
-// Base URL configuration - use relative path for Docker/nginx proxy
+// Base URL configuration
+// In development (Vite dev server): use direct backend URL
+// In production (Docker with nginx proxy): use relative path
+const isDevelopment = import.meta.env.MODE === "development";
+const isDockerEnvironment =
+  window.location.port === "80" || window.location.port === "";
+
 axios.defaults.baseURL =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "" // Use nginx proxy when running in Docker
-    : "http://localhost:8080"; // Fallback for local development
+  isDevelopment && !isDockerEnvironment
+    ? "http://localhost:8080" // Development: direct backend connection
+    : ""; // Production/Docker: use nginx proxy
+
+// Request interceptor to add JWT token to all requests
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle 401 errors
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Authentication endpoints
+export async function login(email, password) {
+  try {
+    const response = await axios.post("/api/auth/login", { email, password });
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data));
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
+}
+
+export async function register(name, email, password) {
+  try {
+    const response = await axios.post("/api/auth/register", {
+      name,
+      email,
+      password,
+    });
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data));
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Register error:", error);
+    throw error;
+  }
+}
+
+export function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
+export function getCurrentUser() {
+  const userStr = localStorage.getItem("user");
+  return userStr ? JSON.parse(userStr) : null;
+}
 
 // Orders endpoints
 export async function getPedidos() {
