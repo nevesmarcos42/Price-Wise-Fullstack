@@ -39,6 +39,7 @@ public class CouponService {
         }
 
         Coupon coupon = CouponMapper.toEntity(dto);
+        @SuppressWarnings("null")
         Coupon saved = couponRepository.save(coupon);
         return CouponMapper.toDTO(saved);
     }
@@ -57,6 +58,7 @@ public class CouponService {
     }
 
     public DiscountedProductDTO applyCouponToProduct(Long productId, String couponCode) {
+        @SuppressWarnings("null")
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
 

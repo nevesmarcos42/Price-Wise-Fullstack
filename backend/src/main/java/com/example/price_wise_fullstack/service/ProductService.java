@@ -32,6 +32,7 @@ public class ProductService {
         }
 
         Product product = ProductMapper.toEntity(dto);
+        @SuppressWarnings("null")
         Product saved = productRepository.save(product);
         return ProductMapper.toDTO(saved);
     }
@@ -52,7 +53,16 @@ public class ProductService {
         String sortBy,
         String sortOrder
     ) {
-        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), sortBy);
+        if (page < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page index must not be less than 1");
+        }
+        if (limit < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit must be at least 1");
+        }
+        
+        String validSortOrder = sortOrder != null ? sortOrder : "asc";
+        String validSortBy = sortBy != null ? sortBy : "id";
+        Sort sort = Sort.by(Sort.Direction.fromString(validSortOrder), validSortBy);
         Pageable pageable = PageRequest.of(page - 1, limit, sort);
 
         Specification<Product> spec = ProductSpecification.filterBy(search, minPrice, maxPrice);
