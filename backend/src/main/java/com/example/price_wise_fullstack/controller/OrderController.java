@@ -8,10 +8,10 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/v1/orders")
 public class OrderController {
@@ -22,7 +22,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderSummaryDTO> createOrder(@Valid @RequestBody OrderRequestDTO dto) {
         OrderSummaryDTO result = orderService.saveOrder(dto);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @GetMapping

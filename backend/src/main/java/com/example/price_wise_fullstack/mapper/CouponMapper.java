@@ -19,7 +19,7 @@ public class CouponMapper {
     public static CouponResponseDTO toDTO(Coupon c) {
         CouponResponseDTO dto = new CouponResponseDTO();
         dto.setId(c.getId());
-        dto.setCode(c.getCode());
+        dto.setCode(c.getCode().toLowerCase());
         dto.setType(c.getType());
         dto.setValue(c.getDiscountValue());
         dto.setOneShot(c.getOneShot());

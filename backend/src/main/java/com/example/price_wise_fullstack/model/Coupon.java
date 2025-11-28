@@ -24,6 +24,10 @@ public class Coupon {
     @Column(nullable = false, length = 20, unique = true)
     private String code;
 
+    public void setCode(String code) {
+        this.code = code != null ? code.toLowerCase() : null;
+    }
+
     @Column(nullable = false)
     private String type; // "fixed" ou "percent"
 
