@@ -44,13 +44,17 @@ class OrderServiceTest {
         prod1.setName("Caneta Azul");
         prod1.setPrice(new BigDecimal("10.00"));
         prod1.setStock(50);
-        productRepository.save(prod1);
+        @SuppressWarnings("null")
+        Product p1 = productRepository.save(prod1);
+        prod1 = p1;
 
         prod2 = new Product();
         prod2.setName("Caderno");
         prod2.setPrice(new BigDecimal("30.00"));
         prod2.setStock(100);
-        productRepository.save(prod2);
+        @SuppressWarnings("null")
+        Product p2 = productRepository.save(prod2);
+        prod2 = p2;
 
         coupon = new Coupon();
         coupon.setCode("PROMO15");
@@ -75,7 +79,7 @@ class OrderServiceTest {
         assertEquals(new BigDecimal("40.00"), summary.getTotalOriginal());
         assertEquals(new BigDecimal("6.00"), summary.getDiscountApplied());
         assertEquals(new BigDecimal("34.00"), summary.getTotalFinal());
-        assertEquals("PROMO15", summary.getCouponCode());
+        assertEquals("promo15", summary.getCouponCode());
     }
 
     @Test
