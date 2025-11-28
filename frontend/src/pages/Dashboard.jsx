@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProdutos } from "../services/api";
+import { getProdutos, getCupons } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 
@@ -10,20 +10,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalProducts: 0,
-    productsWithDiscount: 0,
+    activeCoupons: 0,
   });
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const response = await getProdutos({ page: 1, limit: 6 });
-        setProducts(response.data || []);
+        const [productsResponse, couponsResponse] = await Promise.all([
+          getProdutos({ page: 1, limit: 6 }),
+          getCupons().catch(() => ({ data: [] })),
+        ]);
+
+        setProducts(productsResponse.data || []);
+
+        // Count active coupons (not deleted and still valid)
+        // Using date-only comparison (ignoring time)
+        const today = new Date().setHours(0, 0, 0, 0);
+        const activeCoupons = (
+          couponsResponse.data ||
+          couponsResponse ||
+          []
+        ).filter((coupon) => {
+          if (coupon.deletedAt) return false;
+          const validFrom = new Date(coupon.validFrom).setHours(0, 0, 0, 0);
+          const validUntil = new Date(coupon.validUntil).setHours(0, 0, 0, 0);
+          return today >= validFrom && today <= validUntil;
+        }).length;
+
         setStats({
-          totalProducts: response.totalItems || 0,
-          productsWithDiscount: (response.data || []).filter(
-            (p) => p.discountPrice
-          ).length,
+          totalProducts: productsResponse.totalItems || 0,
+          activeCoupons: activeCoupons,
         });
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
@@ -62,12 +79,10 @@ export default function Dashboard() {
         <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-lg shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">With Discount</p>
-              <p className="text-3xl font-bold mt-2">
-                {stats.productsWithDiscount}
-              </p>
+              <p className="text-green-100 text-sm">Active Coupons</p>
+              <p className="text-3xl font-bold mt-2">{stats.activeCoupons}</p>
             </div>
-            <div className="text-5xl opacity-20">🏷️</div>
+            <div className="text-5xl opacity-20">🎟️</div>
           </div>
         </div>
 
