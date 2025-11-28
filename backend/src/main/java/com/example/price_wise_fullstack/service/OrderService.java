@@ -31,54 +31,97 @@ public class OrderService {
     private ProductRepository productRepository;
 
     public OrderSummaryDTO saveOrder(OrderRequestDTO dto) {
-        List<Long> productIds = dto.getProductIds() != null ? dto.getProductIds() : List.of();
-        @SuppressWarnings("null")
+        if (dto.getItems() == null || dto.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order must have at least one item");
+        }
+
+        // Extract product IDs from items
+        List<Long> productIds = dto.getItems().stream()
+                .map(OrderRequestDTO.OrderItemDTO::getProductId)
+                .toList();
+        
         List<Product> products = productRepository.findAllById(productIds);
         if (products.size() != productIds.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto(s) não encontrado(s)");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more products not found");
         }
 
-        if (products.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produtos não encontrados");
+        // Handle optional coupon
+        Coupon coupon = null;
+        if (dto.getCouponCode() != null && !dto.getCouponCode().trim().isEmpty()) {
+            coupon = couponRepository.findByCodeIgnoreCase(dto.getCouponCode().trim().toLowerCase())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Coupon not found"));
+
+            // Validate using date only (ignoring time)
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDate validFromDate = coupon.getValidFrom().toLocalDate();
+            java.time.LocalDate validUntilDate = coupon.getValidUntil().toLocalDate();
+            
+            if (coupon.getDeletedAt() != null || today.isBefore(validFromDate) || today.isAfter(validUntilDate)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Coupon expired or invalid");
+            }
+            
+            // Check if coupon is one-shot and already used
+            if (coupon.getOneShot() != null && coupon.getOneShot()) {
+                final Long couponId = coupon.getId();
+                long usageCount = orderRepository.findAll().stream()
+                        .filter(o -> o.getCoupon() != null && o.getCoupon().getId().equals(couponId))
+                        .count();
+                
+                if (usageCount > 0) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "This coupon has already been used");
+                }
+            }
         }
 
-        Coupon coupon = couponRepository.findByCodeIgnoreCase(dto.getCouponCode().trim().toLowerCase())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cupom não encontrado"));
-
-        LocalDateTime now = LocalDateTime.now();
-        if (coupon.getDeletedAt() != null || now.isBefore(coupon.getValidFrom()) || now.isAfter(coupon.getValidUntil())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cupom expirado ou inválido");
+        // Calculate total with quantities
+        BigDecimal totalOriginal = BigDecimal.ZERO;
+        for (OrderRequestDTO.OrderItemDTO itemDto : dto.getItems()) {
+            Product product = products.stream()
+                    .filter(p -> p.getId().equals(itemDto.getProductId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            
+            BigDecimal itemTotal = product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()));
+            totalOriginal = totalOriginal.add(itemTotal);
         }
 
-        BigDecimal totalOriginal = products.stream()
-                .map(Product::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal discount = coupon.getType().equals("percent")
-                ? totalOriginal.multiply(coupon.getDiscountValue()).divide(BigDecimal.valueOf(100))
-                : coupon.getDiscountValue();
+        // Apply discount if coupon exists
+        BigDecimal discount = BigDecimal.ZERO;
+        if (coupon != null) {
+            discount = coupon.getType().equals("percent")
+                    ? totalOriginal.multiply(coupon.getDiscountValue()).divide(BigDecimal.valueOf(100))
+                    : coupon.getDiscountValue();
+        }
 
         BigDecimal totalFinal = totalOriginal.subtract(discount).max(BigDecimal.ZERO);
 
+        if (totalFinal.compareTo(new BigDecimal("0.01")) < 0) {
+            throw new ResponseStatusException(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Total amount below R$ 0.01 is not allowed"
+            );
+        }
+
+        // Create order
         Order order = new Order();
         order.setCoupon(coupon);
         order.setTotalOriginal(totalOriginal);
         order.setDiscountApplied(discount);
         order.setTotalFinal(totalFinal);
 
-        for (Product product : products) {
+        // Create order items with quantities
+        for (OrderRequestDTO.OrderItemDTO itemDto : dto.getItems()) {
+            Product product = products.stream()
+                    .filter(p -> p.getId().equals(itemDto.getProductId()))
+                    .findFirst()
+                    .orElseThrow();
+            
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
             item.setPrice(product.getPrice());
+            item.setQuantity(itemDto.getQuantity());
             order.getItems().add(item);
-        }
-
-        if (totalFinal.compareTo(new BigDecimal("0.01")) < 0) {
-            throw new ResponseStatusException(
-                HttpStatus.UNPROCESSABLE_ENTITY,
-                "Valor final abaixo de R$ 0,01 não permitido"
-            );
         }
 
         Order saved = orderRepository.save(order);
@@ -89,7 +132,7 @@ public class OrderService {
         summary.setTotalOriginal(totalOriginal);
         summary.setDiscountApplied(discount);
         summary.setTotalFinal(totalFinal);
-        summary.setCouponCode(coupon.getCode());
+        summary.setCouponCode(coupon != null ? coupon.getCode() : null);
         summary.setCreatedAt(saved.getCreatedAt());
 
         return summary;

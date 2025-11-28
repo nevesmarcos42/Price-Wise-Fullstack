@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { login as apiLogin, register as apiRegister } from "../services/api";
+import {
+  login as apiLogin,
+  register as apiRegister,
+  logout as apiLogout,
+  getCurrentUser,
+} from "../services/api";
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -10,37 +15,27 @@ function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
+    const savedUser = getCurrentUser();
+    if (savedUser) {
+      setUser(savedUser);
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const response = await apiLogin({ email, password });
-    const { token, email: userEmail, name, role } = response.data;
-    const userData = { email: userEmail, name, role };
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    const userData = await apiLogin(email, password);
     setUser(userData);
-    return response.data;
+    return userData;
   };
 
   const register = async (name, email, password) => {
-    const response = await apiRegister({ name, email, password });
-    const { token, email: userEmail, name: userName, role } = response.data;
-    const userData = { email: userEmail, name: userName, role };
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
+    const userData = await apiRegister(name, email, password);
     setUser(userData);
-    return response.data;
+    return userData;
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    apiLogout();
     setUser(null);
   };
 
