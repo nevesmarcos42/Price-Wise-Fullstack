@@ -46,3 +46,8 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+# Environment variables (keep .env.example)
+.env
+!.env.example
+
+.fake
