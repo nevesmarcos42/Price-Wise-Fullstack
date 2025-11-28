@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProdutos } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 import ProductCard from "../components/ProductCard";
 import FilterBar from "../components/FilterBar";
 import Pagination from "../components/Pagination";
@@ -8,6 +9,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Products() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [produtos, setProdutos] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -44,12 +46,14 @@ export default function Products() {
         <h2 className="text-2xl font-bold text-blue-700">
           🛍️ Available Products
         </h2>
-        <button
-          onClick={() => navigate("/add-product")}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-        >
-          ➕ Add Product
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/add-product")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+          >
+            ➕ Add Product
+          </button>
+        )}
       </div>
 
       <FilterBar filters={filters} setFilters={setFilters} />
